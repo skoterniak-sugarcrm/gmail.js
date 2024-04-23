@@ -5,6 +5,15 @@
 //
 
 /*eslint-env es6*/
+function overrideHtml($el, content) {
+    if (typeof content === "string") {
+        $el.get(0).innerHTML = window.trustedTypesOverride.createHTML(content);
+    } else {
+        $el.append(content);
+    }
+
+    return $el;
+}
 
 var Gmail = function(localJQuery) {
 
@@ -3091,7 +3100,7 @@ var Gmail = function(localJQuery) {
             if (!html) {
                 info.text(message);
             } else {
-                info.html(message);
+                overrideHtml(info, message);
             }
             if(typeof time !== "undefined"){
                 var initialInfoboxStyle = top.attr("style");            // backup initial style
@@ -3228,13 +3237,7 @@ var Gmail = function(localJQuery) {
                 data.threads[x[1]].bcc = x[13] ? x[13][3] : [];
                 data.threads[x[1]].reply_to = api.tools.get_reply_to(x[13]);
                 data.threads[x[1]].labels = x[9];
-
-                try { // jQuery will sometime fail to parse x[13][6], if so, putting the raw HTML
-                    data.threads[x[1]].content_plain = x[13] ? $(x[13][6]).text() : x[8];
-                }
-                catch(e) {
-                    data.threads[x[1]].content_plain = x[13] ? x[13][6] : x[8];
-                }
+                data.threads[x[1]].content_plain = x[13] ? x[13][6] : x[8];
             }
         }
 
@@ -3660,13 +3663,13 @@ var Gmail = function(localJQuery) {
         }
         button.attr("class", buttonClasses);
 
-        button.html(content_html);
+        overrideHtml(button, content_html);
         button.click(onClickFunction);
 
         var content = $(document.createElement("div"));
         content.attr("class","asa");
 
-        container.html(button);
+        overrideHtml(container, content_html);
 
         selector.append(container);
 
@@ -3699,7 +3702,7 @@ var Gmail = function(localJQuery) {
         }
         button.attr("class", buttonClasses);
         button.attr("style", "margin-left: 8px; max-width: 500px;");
-        button.html(content_html);
+        overrideHtml(button, content_html);
         button.click(onClickFunction);
 
         div.append(button);
@@ -3775,7 +3778,7 @@ var Gmail = function(localJQuery) {
         }
         div.attr("class", divClass);
         if (contentHtml) {
-            div.html(contentHtml);
+            overrideHtml(div, contentHtml);
         }
 
         button.append(div);
@@ -3821,7 +3824,7 @@ var Gmail = function(localJQuery) {
         heading.attr("id", "gmailJsModalWindowTitle");
         heading.attr("class", "Kj-JD-K7-K0");
         heading.attr("role", "heading");
-        heading.html(title);
+        overrideHtml(heading, title);
 
         var closeButton = $(document.createElement("span"));
         closeButton.attr("id", "gmailJsModalWindowClose");
@@ -3838,7 +3841,7 @@ var Gmail = function(localJQuery) {
         var contents = $(document.createElement("div"));
         contents.attr("id", "gmailJsModalWindowContent");
         contents.attr("class", "Kj-JD-Jz");
-        contents.html(content_html);
+        overrideHtml(contents, content_html);
 
         // Modal window controls
         var controls = $(document.createElement("div"));
@@ -4313,7 +4316,7 @@ var Gmail = function(localJQuery) {
         body: function(body) {
             var el = this.dom("body");
             if (body) {
-                el.html(body);
+                overrideHtml(el, body);
             }
             return el.html();
         },
@@ -4330,7 +4333,7 @@ var Gmail = function(localJQuery) {
             }
             if (name) {
                 el.attr("name",name);
-                el.html(name);
+                overrideHtml(el, name);
             }
             return {
                 email: el.attr("email"),
@@ -4354,13 +4357,21 @@ var Gmail = function(localJQuery) {
                 }
                 var html = [];
                 $.each(to_array, function(index, obj) {
-                    html.push( $("<span />").attr({
-                        dir: "ltr",
-                        email: obj.email,
-                        name: obj.name
-                    }).addClass("g2").html(obj.name).wrap("<p/>").parent().html());
+                    html.push(
+                        overrideHtml($("<span />").attr({
+                                dir: "ltr",
+                                email: obj.email,
+                                name: obj.name
+                            })
+                                .addClass("g2"), obj.name
+                        )
+                            .wrap("<p/>")
+                            .parent()
+                            .html()
+                    );
                 });
-                this.dom("to_wrapper").html("to " + html.join(", "));
+
+                overrideHtml(this.dom("to_wrapper"), "to " + html.join(", "));
             }
 
 
